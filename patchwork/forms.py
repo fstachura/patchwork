@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import re
+
 import django
 from django.contrib.auth.models import User
 from django import forms
@@ -257,3 +259,28 @@ class MultiplePatchForm(forms.Form):
         if commit:
             instance.save()
         return instance
+
+
+class ColorField(forms.CharField):
+
+    widget = forms.TextInput
+    default_error_messages = {
+        'invalid': 'Enter a valid colour value: e.g. "#ff0022"',
+    }
+
+    def __init__(self, *args, **kwargs):
+        super(ColorField, self).__init__(*args, **kwargs)
+
+    def clean(self, value):
+        if not re.match('^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', value):
+            raise forms.ValidationError(self.error_messages['invalid'])
+
+        value = int(value.lstrip('#'), 16)
+        super(ColorField, self).clean(value)
+
+        return value
+
+    def widget_attrs(self, widget):
+        attrs = super().widget_attrs(widget)
+        attrs['maxlength'] = 7
+        return attrs
