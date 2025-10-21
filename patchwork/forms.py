@@ -15,6 +15,7 @@ from django.template.backends import django as django_template_backend
 
 from patchwork.models import Bundle
 from patchwork.models import Patch
+from patchwork.models import Label
 from patchwork.models import State
 from patchwork.models import UserProfile
 
@@ -145,10 +146,14 @@ class PatchForm(forms.ModelForm):
             widget=forms.Select(attrs={'class': 'change-property-delegate'}),
             required=False,
         )
+        self.fields['labels'] = forms.ModelMultipleChoiceField(
+            queryset=Label.objects.filter(
+                Q(project=project) | Q(project=None)),
+            required=False)
 
     class Meta:
         model = Patch
-        fields = ['state', 'archived', 'delegate']
+        fields = ['state', 'archived', 'delegate', 'labels']
         widgets = {
             'state': forms.Select(attrs={'class': 'change-property-state'}),
             'archived': forms.CheckboxInput(
@@ -227,6 +232,10 @@ class MultiplePatchForm(forms.Form):
             label='Delegate to',
             required=False,
         )
+        self.fields['labels'] = forms.ModelMultipleChoiceField(
+            queryset=Label.objects.filter(
+                Q(project=project) | Q(project=None)),
+            required=False)
         self.fields['state'] = OptionalModelChoiceField(
             queryset=State.objects.all(),
             placeholder='Change state',
@@ -252,6 +261,12 @@ class MultiplePatchForm(forms.Form):
                 continue
 
             if field.is_no_change(data[f.name]):
+                continue
+
+            setattr(instance, f.name, data[f.name])
+
+        for f in opts.many_to_many:
+            if f.name not in data:
                 continue
 
             setattr(instance, f.name, data[f.name])

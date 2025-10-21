@@ -150,6 +150,16 @@
   <th>Check</th>
   <th>Description</th>
 </tr>
+{# NOTE: probably wrong #}
+{% if submission.labels %}
+  <tr>
+    <th>Labels:</th>
+    <td>
+      {{ submission.labels }}
+      {{ submission.labels.errors }}
+    </td>
+  </tr>
+{% endif %}
 {% for check in checks %}
 <tr>
   <td>{{ check.user }}/{{ check.context }}</td>

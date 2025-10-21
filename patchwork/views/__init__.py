@@ -316,6 +316,7 @@ def generic_list(
             ),
         )
     )
+    patches = patches.prefetch_related('check_set', 'series', 'labels')
 
     paginator = Paginator(request, patches)
 
