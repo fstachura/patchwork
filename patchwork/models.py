@@ -19,7 +19,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils import timezone as tz_utils
 
-from patchwork.fields import HashField
+from patchwork.fields import HashField, ColorField
 from patchwork.hasher import hash_diff
 
 if settings.ENABLE_REST_API:
@@ -255,6 +255,38 @@ class State(models.Model):
 
     class Meta:
         ordering = ['ordering']
+
+
+class Label(models.Model):
+    """Labels for patches.
+
+    Labels are arbitrary bits of metadata attached to a patch. They can
+    be used to signify priority, category, or other similar information.
+    They can also be used to filter patches and identify the ones most
+    interesting to a given user.
+    """
+    project = models.ForeignKey(
+        Project, related_name='labels', related_query_name='label', null=True,
+        on_delete=models.CASCADE,
+        help_text='The project this label is associated with. If unset, this '
+        'label is global to the instance')
+
+    name = models.CharField(
+        max_length=25,
+        help_text='The label value.')
+    description = models.TextField(
+        null=True, blank=True,
+        help_text='A description of what the label is and when it should be '
+        'applied.')
+    color = ColorField(
+        help_text='The color code to use in the UI.')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        unique_together = [('project', 'name')]
 
 
 class Tag(models.Model):
@@ -494,6 +526,7 @@ class Patch(SubmissionMixin):
     commit_ref = models.CharField(max_length=255, null=True, blank=True)
     pull_url = models.CharField(max_length=255, null=True, blank=True)
     tags = models.ManyToManyField(Tag, through=PatchTag)
+    labels = models.ManyToManyField(Label)
 
     # patchwork metadata
 
