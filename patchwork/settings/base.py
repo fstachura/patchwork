@@ -77,9 +77,9 @@ FORM_RENDERER = 'patchwork.forms.PatchworkTableRenderer'
 # Django < 3.2
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-DEFAULT_FROM_EMAIL = 'Patchwork <patchwork@patchwork.example.com>'
+DEFAULT_FROM_EMAIL = 'Patchwork <fbstachura+patchworkdev@gmail.com>'
 
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
+SERVER_EMAIL = 'fbstachura+patchworkdev@gmail.com'
 
 #
 # Auth settings
@@ -277,3 +277,5 @@ FORCE_HTTPS_LINKS = False
 
 # Set to True to hide admin details from the about page (/about)
 ADMINS_HIDE = False
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

@@ -105,7 +105,8 @@ def _optinout(request, action):
     message = render_to_string(mail_template, context, request=request)
 
     try:
-        send_mail(subject, message, conf_settings.DEFAULT_FROM_EMAIL, [email])
+        # send_mail(subject, message, conf_settings.DEFAULT_FROM_EMAIL, [email])
+        pass
     except smtplib.SMTPException:
         context['confirmation'] = None
         context['error'] = (

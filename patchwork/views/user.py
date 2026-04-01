@@ -64,9 +64,10 @@ def register(request):
             )
 
             try:
-                send_mail(
-                    subject, message, settings.DEFAULT_FROM_EMAIL, [conf.email]
-                )
+                # send_mail(
+                #     subject, message, settings.DEFAULT_FROM_EMAIL, [conf.email]
+                # )
+                pass
             except smtplib.SMTPException:
                 context['confirmation'] = None
                 context['error'] = (
@@ -156,12 +157,13 @@ def link(request):
                 'patchwork/mails/user-link.txt', context, request=request
             )
             try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [form.cleaned_data['email']],
-                )
+                # send_mail(
+                #     subject,
+                #     message,
+                #     settings.DEFAULT_FROM_EMAIL,
+                #     [form.cleaned_data['email']],
+                # )
+                pass
             except smtplib.SMTPException:
                 context['confirmation'] = None
                 context['error'] = (

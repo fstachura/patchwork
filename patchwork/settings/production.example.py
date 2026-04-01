@@ -64,3 +64,5 @@ STORAGES = {
         'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
     },
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
