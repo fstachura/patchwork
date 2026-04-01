@@ -77,6 +77,7 @@ class Command(BaseCommand):
         #
         # The alternative is converting the mbox to a list of messages, but
         # that requires holding the entire thing in memory, which is wateful.
+
         try:
             for m in mbox:
                 pass
@@ -98,9 +99,10 @@ class Command(BaseCommand):
             except (ValueError, Exception) as exc:
                 errors += 1
                 logger.warning('Invalid mail: %s', repr(exc))
+                print('Invalid mail', repr(exc))
 
             if verbosity < 3 and (i % 10) == 0:
-                self.stdout.write('%06d/%06d\r' % (i, count), ending='')
+                self.stdout.write('%06d/%06d, dropped: %06d, errors: %06d\r' % (i, count, dropped, errors), ending='')
                 self.stdout.flush()
 
         mbox.close()
