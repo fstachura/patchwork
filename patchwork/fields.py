@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import hashlib
+import six
 
 from django.db import models
 
