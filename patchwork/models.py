@@ -398,6 +398,12 @@ class PatchQuerySet(models.query.QuerySet):
 
         return qs
 
+    def exclude_label(self, label):
+        return self.exclude(labels__contains=label.lower())
+
+    def include_label(self, label):
+        return self.filter(labels__contains=label.lower())
+
 
 class PatchManager(models.Manager):
     def get_queryset(self):
