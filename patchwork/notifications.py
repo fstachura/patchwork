@@ -82,7 +82,8 @@ def send_notifications():
         )
 
         try:
-            message.send()
+            #message.send()
+            pass
         except smtplib.SMTPException as ex:
             errors.append((recipient, ex))
             continue
