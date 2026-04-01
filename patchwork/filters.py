@@ -7,6 +7,7 @@ import collections
 from urllib.parse import quote
 
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -510,6 +511,68 @@ class DelegateFilter(Filter):
             self.applied = False
             self.forced = True
 
+class LabelsFilter(Filter):
+    name = 'Labels'
+    param = 'labels'
+
+    def __init__(self, filters):
+        super(LabelsFilter, self).__init__(filters)
+        self.labels = None
+
+    @property
+    def condition(self):
+        return self.labels
+
+    @property
+    def key(self):
+        return self.labels
+
+    @key.setter
+    def key(self, key):
+        key = key.strip()
+        if not key:
+            return
+
+        self.labels = key
+        self.applied = True
+
+    @property
+    def kwargs(self):
+        return None
+
+    def q(self, queryset):
+        label_names = self.labels.split(" ")
+        if len(label_names) == 0:
+            return queryset
+
+        labels_pos, labels_neg = [], []
+        for label in label_names:
+            if not label.startswith('-'):
+                labels_pos.append(label)
+            else:
+                labels_neg.append(label[1:])
+
+        if len(labels_neg) > 0:
+            queryset = queryset.exclude(labels__name__in=labels_neg)
+
+        if len(labels_pos) > 0:
+            queryset = queryset \
+                .filter(labels__name__in=labels_pos) \
+                .annotate(num_labels=Count('labels', distinct=True)) \
+                .filter(num_labels__gte=len(labels_pos))
+
+        return queryset
+
+    @property
+    def form(self):
+        value = ''
+        if self.labels:
+            value = escape(self.labels)
+        return mark_safe(
+            '<input type="text" id="labels_input" name="%s" class="form-control" value="%s">'
+            % (self.param, value)
+        )
+
 
 FILTERS = [
     SeriesFilter,
@@ -518,6 +581,7 @@ FILTERS = [
     SearchFilter,
     ArchiveFilter,
     DelegateFilter,
+    LabelsFilter,
 ]
 
 
@@ -547,14 +611,22 @@ class Filters:
 
     def apply(self, queryset):
         kwargs = collections.OrderedDict()
+        q_filters = []
         for f in self._filters:
             if f.applied:
-                kwargs.update(f.kwargs)
+                if f.kwargs is not None:
+                    kwargs.update(f.kwargs)
+                else:
+                    q_filters.append(f)
 
-        if not kwargs:
+        if not kwargs and not q_filters:
             return queryset
 
-        return queryset.filter(**kwargs)
+        queryset = queryset.filter(**kwargs)
+        for f in q_filters:
+            queryset = f.q(queryset)
+
+        return queryset
 
     def querystring(self, remove=None):
         params = self.params
