@@ -7,10 +7,11 @@ import collections
 from urllib.parse import quote
 
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from patchwork.models import Person
+from patchwork.models import Label, Person
 from patchwork.models import Series
 from patchwork.models import State
 
@@ -510,6 +511,57 @@ class DelegateFilter(Filter):
             self.applied = False
             self.forced = True
 
+class LabelsFilter(Filter):
+    name = 'Labels'
+    param = 'labels'
+
+    def __init__(self, filters):
+        super(LabelsFilter, self).__init__(filters)
+        self.labels = None
+
+    @property
+    def condition(self):
+        return self.labels
+
+    @property
+    def key(self):
+        return self.labels
+
+    @key.setter
+    def key(self, key):
+        key = key.strip()
+        if not key:
+            return
+
+        self.labels = key
+        self.applied = True
+
+    @property
+    def kwargs(self):
+        #if len(label_names) == 0:
+        #    return {}
+        # or
+        # return {'labels__name__in': label_names}
+        return None
+
+    def q(self, queryset):
+        label_names = self.labels.split(" ")
+        if len(label_names) == 0:
+            return queryset
+        return queryset.filter(labels__name__in=label_names) \
+            .annotate(num_labels=Count('labels')) \
+            .filter(num_labels__gte=len(label_names))
+
+    @property
+    def form(self):
+        value = ''
+        if self.labels:
+            value = escape(self.labels)
+        return mark_safe(
+            '<input name="%s" class="form-control" value="%s">'
+            % (self.param, value)
+        )
+
 
 FILTERS = [
     SeriesFilter,
@@ -518,6 +570,7 @@ FILTERS = [
     SearchFilter,
     ArchiveFilter,
     DelegateFilter,
+    LabelsFilter,
 ]
 
 
@@ -547,14 +600,21 @@ class Filters:
 
     def apply(self, queryset):
         kwargs = collections.OrderedDict()
+        q_filters = []
         for f in self._filters:
             if f.applied:
-                kwargs.update(f.kwargs)
+                if f.kwargs is not None:
+                    kwargs.update(f.kwargs)
+                else:
+                    q_filters.append(f)
 
-        if not kwargs:
+        if not kwargs and not q_filters:
             return queryset
 
-        return queryset.filter(**kwargs)
+        queryset = queryset.filter(**kwargs)
+        for f in q_filters:
+            queryset = f.q(queryset)
+        return queryset
 
     def querystring(self, remove=None):
         params = self.params
