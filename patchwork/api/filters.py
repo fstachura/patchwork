@@ -26,6 +26,9 @@ from patchwork.models import Project
 from patchwork.models import Series
 from patchwork.models import State
 
+from patchwork.models import exclude_submissions_by_labels
+from patchwork.models import filter_submissions_by_labels
+
 
 # custom backend
 
@@ -173,7 +176,6 @@ class SeriesFilterSet(TimestampMixin, BaseFilterSet):
 
 def msgid_filter(queryset, name, value):
     return queryset.filter(**{name: '<' + value + '>'})
-
 
 class CoverFilterSet(TimestampMixin, BaseFilterSet):
     project = ProjectFilter(queryset=Project.objects.all(), distinct=False)
