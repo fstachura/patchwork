@@ -269,7 +269,8 @@ class MultiplePatchForm(forms.Form):
             if f.name not in data:
                 continue
 
-            setattr(instance, f.name, data[f.name])
+            # setattr(instance, f.name, data[f.name])
+            getattr(instance, f.name).set(data[f.name])
 
         if commit:
             instance.save()
