@@ -7,7 +7,7 @@ import collections
 from urllib.parse import quote
 
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -538,19 +538,29 @@ class LabelsFilter(Filter):
 
     @property
     def kwargs(self):
-        #if len(label_names) == 0:
-        #    return {}
-        # or
-        # return {'labels__name__in': label_names}
         return None
 
     def q(self, queryset):
         label_names = self.labels.split(" ")
         if len(label_names) == 0:
             return queryset
-        return queryset.filter(labels__name__in=label_names) \
-            .annotate(num_labels=Count('labels')) \
-            .filter(num_labels__gte=len(label_names))
+
+        labels_pos, labels_neg = [], []
+        for label in label_names:
+            if not label.startswith('-'):
+                labels_pos.append(label)
+            else:
+                labels_neg.append(label[1:])
+
+        return queryset \
+            .annotate(
+                num_labels_pos=Count('labels', filter=Q(labels__name__in=labels_pos)),
+                num_labels_neg=Count('labels', filter=Q(labels__name__in=labels_neg)),
+            ) \
+            .filter(
+                num_labels_pos__gte=len(labels_pos),
+                num_labels_neg=0,
+            )
 
     @property
     def form(self):
