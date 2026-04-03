@@ -223,7 +223,7 @@ admin.site.register(Tag, TagAdmin)
 
 
 class LabelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color')
+    list_display = ('name', 'project', 'color')
 
 admin.site.register(Label, LabelAdmin)
 
