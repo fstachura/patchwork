@@ -552,15 +552,16 @@ class LabelsFilter(Filter):
             else:
                 labels_neg.append(label[1:])
 
-        return queryset \
-            .annotate(
-                num_labels_pos=Count('labels', filter=Q(labels__name__in=labels_pos)),
-                num_labels_neg=Count('labels', filter=Q(labels__name__in=labels_neg)),
-            ) \
-            .filter(
-                num_labels_pos__gte=len(labels_pos),
-                num_labels_neg=0,
-            )
+        if len(labels_neg) > 0:
+            queryset = queryset.exclude(labels__name__in=labels_neg)
+
+        if len(labels_pos) > 0:
+            queryset = queryset \
+                .filter(labels__name__in=labels_pos) \
+                .annotate(num_labels=Count('labels')) \
+                .filter(num_labels__gte=len(labels_pos))
+
+        return queryset
 
     @property
     def form(self):
