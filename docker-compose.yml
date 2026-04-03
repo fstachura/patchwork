@@ -4,6 +4,7 @@ services:
     image: mysql:latest
     volumes:
       - ./tools/docker/db/data:/var/lib/mysql
+      - ./tools/docker/db/config:/etc/mysql/conf.d
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=patchwork
