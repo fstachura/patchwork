@@ -62,11 +62,13 @@ class CoverListSerializer(BaseHyperlinkedModelSerializer):
             'mbox',
             'series',
             'comments',
+            'labels',
         )
         read_only_fields = fields
         versioned_fields = {
             '1.1': ('web_url', 'mbox', 'comments'),
             '1.2': ('list_archive_url',),
+            '1.4': ('labels',),
         }
         extra_kwargs = {
             'url': {'view_name': 'api-cover-detail'},

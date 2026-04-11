@@ -178,6 +178,7 @@ class PatchListSerializer(BaseHyperlinkedModelSerializer):
             'checks',
             'tags',
             'related',
+            'labels',
         )
         read_only_fields = (
             'url',
@@ -195,6 +196,7 @@ class PatchListSerializer(BaseHyperlinkedModelSerializer):
             'check',
             'checks',
             'tags',
+            'labels',
         )
         versioned_fields = {
             '1.1': ('comments', 'web_url'),
@@ -202,6 +204,7 @@ class PatchListSerializer(BaseHyperlinkedModelSerializer):
                 'list_archive_url',
                 'related',
             ),
+            '1.4': ('labels',),
         }
         extra_kwargs = {
             'url': {'view_name': 'api-patch-detail'},
@@ -408,7 +411,10 @@ class PatchDetail(RetrieveUpdateAPIView):
     def get_queryset(self):
         return (
             Patch.objects.all()
-            .prefetch_related('check_set', 'related__patches__project')
+            .prefetch_related(
+                'check_set',
+                'related__patches__project',
+            )
             .select_related(
                 'project', 'state', 'submitter', 'delegate', 'series'
             )
