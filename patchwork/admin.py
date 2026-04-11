@@ -7,12 +7,14 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Prefetch
+import django.forms
 
 from patchwork.models import Bundle
 from patchwork.models import Check
 from patchwork.models import Cover
 from patchwork.models import CoverComment
 from patchwork.models import DelegationRule
+from patchwork.models import Label
 from patchwork.models import Patch
 from patchwork.models import PatchComment
 from patchwork.models import PatchRelation
@@ -23,6 +25,7 @@ from patchwork.models import SeriesReference
 from patchwork.models import State
 from patchwork.models import Tag
 from patchwork.models import UserProfile
+from patchwork import forms
 
 
 class UserProfileInline(admin.StackedInline):
@@ -44,11 +47,18 @@ class DelegationRuleInline(admin.TabularInline):
     fields = ('path', 'user', 'priority')
 
 
+class LabelInline(admin.TabularInline):
+    model = Label
+    fields = ('name', 'description', 'color')
+    extra = 0
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'linkname', 'listid', 'listemail')
     inlines = [
         DelegationRuleInline,
+        LabelInline,
     ]
 
 
@@ -79,8 +89,7 @@ class CoverAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
 
 
-@admin.register(Patch)
-class PatchAdmin(admin.ModelAdmin):
+class PatchAdminForm(django.forms.ModelForm):
     list_display = (
         'name',
         'submitter',
@@ -89,11 +98,23 @@ class PatchAdmin(admin.ModelAdmin):
         'date',
         'archived',
         'is_pull_request',
+        'labels',
     )
     list_filter = ('project', 'submitter', 'state', 'archived')
+    readonly_fields = ('labels',)
     list_select_related = ('submitter', 'project', 'state')
     search_fields = ('name', 'submitter__name', 'submitter__email')
     date_hierarchy = 'date'
+
+    def __init__(self, *args, **kwargs):
+        super(PatchAdminForm, self).__init__(*args, **kwargs)
+        project = None
+        if kwargs is not None and kwargs.get('instance') is not None:
+            project = kwargs['instance'].project
+        self.fields['labels'] = forms.LabelsField(
+            project=project,
+            required=False,
+        )
 
     @admin.display(
         description='Pull',
@@ -102,6 +123,11 @@ class PatchAdmin(admin.ModelAdmin):
     )
     def is_pull_request(self, patch):
         return bool(patch.pull_url)
+
+
+@admin.register(Patch)
+class PatchAdmin(admin.ModelAdmin):
+    form = PatchAdminForm
 
 
 @admin.register(CoverComment)
@@ -194,3 +220,8 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(PatchRelation)
 class PatchRelationAdmin(admin.ModelAdmin):
     model = PatchRelation
+
+
+@admin.register(Label)
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'project', 'color')
