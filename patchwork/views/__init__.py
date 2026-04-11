@@ -14,6 +14,7 @@ from patchwork.forms import CreateBundleForm
 from patchwork.forms import MultiplePatchForm
 from patchwork.models import Bundle
 from patchwork.models import BundlePatch
+from patchwork.models import Label
 from patchwork.models import Patch
 from patchwork.models import Project
 from patchwork.models import Check
@@ -297,7 +298,7 @@ def generic_list(
     # but we will need to follow the state and submitter relations for
     # rendering the list template
     patches = patches.select_related(
-        'state', 'submitter', 'delegate', 'series'
+        'state', 'submitter', 'delegate', 'series',
     )
 
     patches = patches.only(
@@ -320,6 +321,8 @@ def generic_list(
             ),
         )
     )
+    patches = patches.prefetch_related(
+        Prefetch('labels', queryset=Label.objects.only('name')))
 
     paginator = Paginator(request, patches)
 
