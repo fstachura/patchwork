@@ -635,8 +635,13 @@ def parse_labels(subject_prefixes, project):
     Args:
         subject_prefixes: List of subject prefixes to extract tags from
     """
-    return Label.objects.filter(Q(project=project) | Q(project=None),
-                                name__in=subject_prefixes)
+    labels = Label.objects.filter(Q(project=project) | Q(project=None),
+                                  name__in=subject_prefixes)
+    for label in labels:
+        if label.name in subject_prefixes:
+            subject_prefixes.remove(label.name)
+
+    return labels
 
 
 def _find_content(mail):
