@@ -26,6 +26,7 @@ from patchwork.models import Cover
 from patchwork.models import CoverComment
 from patchwork.models import DelegationRule
 from patchwork.models import get_default_initial_patch_state
+from patchwork.models import Label
 from patchwork.models import Patch
 from patchwork.models import PatchComment
 from patchwork.models import Person
@@ -246,7 +247,7 @@ def _find_series_by_references(project, mail):
         The matching ``Series`` instance, if any
     """
     subject = mail.get('Subject')
-    name, prefixes = clean_subject(subject, [project.linkname])
+    name, prefixes, _ = clean_subject(subject, [project.linkname])
     version = parse_version(name, prefixes)
 
     msg_id = find_message_id(mail)
@@ -300,7 +301,7 @@ def _find_series_by_markers(project, mail, author):
     """
 
     subject = mail.get('Subject')
-    name, prefixes = clean_subject(subject, [project.linkname])
+    name, prefixes, _ = clean_subject(subject, [project.linkname])
     _, total = parse_series_marker(prefixes)
     version = parse_version(name, prefixes)
 
@@ -837,6 +838,7 @@ def clean_subject(subject, drop_prefixes=None):
     subject = normalise_space(subject)
 
     prefixes = []
+    cleaned_prefixes = []
 
     match = prefix_re.match(subject)
 
@@ -848,6 +850,10 @@ def clean_subject(subject, drop_prefixes=None):
             if p.lower() not in drop_prefixes
         ]
 
+        cleaned_prefixes += [
+            p for p in split_prefixes(prefix_str) if p.lower() in drop_prefixes
+        ]
+
         subject = match.group(2)
         match = prefix_re.match(subject)
 
@@ -855,7 +861,7 @@ def clean_subject(subject, drop_prefixes=None):
     if prefixes:
         subject = '[%s] %s' % (','.join(prefixes), subject)
 
-    return (subject, prefixes)
+    return (subject, prefixes, cleaned_prefixes)
 
 
 def subject_check(subject):
@@ -1236,7 +1242,15 @@ def parse_mail(mail, list_id=None):
 
     msgid = find_message_id(mail)
     subject = mail.get('Subject')
-    name, prefixes = clean_subject(subject, [project.linkname])
+    project_labels = [
+        label.name.lower() for label in Label.get_project_labels(project)
+    ]
+    name, prefixes, cleaned_prefixes = clean_subject(
+        subject, [project.linkname, *project_labels]
+    )
+    cleaned_prefixes = [prefix.lower() for prefix in cleaned_prefixes]
+    labels = [label for label in project_labels if label in cleaned_prefixes]
+
     is_comment = subject_check(subject)
     x, n = parse_series_marker(prefixes)
     version = parse_version(name, prefixes)
@@ -1284,6 +1298,9 @@ def parse_mail(mail, list_id=None):
                 delegate=delegate,
                 state=find_state(mail),
             )
+            if labels:
+                patch.labels = labels
+
             logger.debug('Patch saved')
 
         for attempt in range(1, 11):  # arbitrary retry count
