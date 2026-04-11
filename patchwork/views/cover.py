@@ -13,6 +13,7 @@ from django.urls import reverse
 from patchwork.models import Cover
 from patchwork.models import Patch
 from patchwork.models import Project
+from patchwork.models import Label
 from patchwork.views.utils import cover_to_mbox
 
 
@@ -46,6 +47,7 @@ def cover_detail(request, project_id, msgid):
     comments = comments.select_related('submitter')
     comments = comments.only('submitter', 'date', 'id', 'content', 'cover')
     context['comments'] = comments
+    context['project_labels'] = Label.get_project_labels(project)
 
     return render(request, 'patchwork/submission.html', context)
 

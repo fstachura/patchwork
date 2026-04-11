@@ -14,6 +14,7 @@ from patchwork.forms import CreateBundleForm
 from patchwork.forms import MultiplePatchForm
 from patchwork.models import Bundle
 from patchwork.models import BundlePatch
+from patchwork.models import Label
 from patchwork.models import Patch
 from patchwork.models import Project
 from patchwork.models import Check
@@ -192,6 +193,7 @@ def generic_list(
     context = {
         'project': project,
         'projects': Project.objects.all(),
+        'project_labels': Label.get_project_labels(project),
         'filters': filters,
     }
 
@@ -322,6 +324,7 @@ def generic_list(
         'name',
         'date',
         'msgid',
+        'labels',
     )
 
     # we also need checks and series

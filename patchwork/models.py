@@ -295,6 +295,19 @@ class Label(models.Model):
     def __str__(self):
         return self.name
 
+    @staticmethod
+    def get_project_labels(project):
+        result = {}
+        project_labels = Label.objects.filter(
+            models.Q(project=project) | models.Q(project__isnull=True)
+        ).all()
+
+        for label in project_labels:
+            if label.name not in result or label.project is not None:
+                result[label.name] = label
+
+        return list(result.values())
+
     class Meta:
         ordering = ['name']
         constraints = [

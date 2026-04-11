@@ -17,6 +17,7 @@ from patchwork.forms import PatchForm
 from patchwork.models import Cover
 from patchwork.models import Patch
 from patchwork.models import Project
+from patchwork.models import Label
 from patchwork.views import generic_list
 from patchwork.views import set_bundle
 from patchwork.views.utils import patch_to_mbox
@@ -126,6 +127,7 @@ def patch_detail(request, project_id, msgid):
     context['project'] = patch.project
     context['related_same_project'] = related_same_project
     context['related_different_project'] = related_different_project
+    context['project_labels'] = Label.get_project_labels(project)
     if errors:
         context['errors'] = errors
 

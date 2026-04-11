@@ -83,3 +83,38 @@ def patch_commit_display(patch):
     return mark_safe(  # noqa: S308
         '<a href="%s">%s</a>' % (escape(fmt.format(commit)), escape(commit))
     )
+
+
+@register.filter(name='patch_labels')
+def patch_labels(patch, project_labels):
+
+    def text_color(hex_color):
+        """Generate the ideal text color given a background color.
+
+        From https://www.w3.org/TR/AERT/#color-contrast
+        """
+        hex_color = hex_color.strip()[:7]
+
+        red, green, blue = [
+            int(hex_color.lstrip('#')[i : i + 2], 16) for i in (0, 2, 4)
+        ]
+        brightness = (red * 299 + green * 587 + blue * 114) / 1000
+
+        return '#000' if brightness >= 123 else '#fff'
+
+    output = []
+    for label in patch.labels:
+        for project_label in project_labels:
+            if project_label.name == label:
+                style = 'background-color: %s; color: %s' % (
+                    project_label.color,
+                    text_color(project_label.color),
+                )
+                output.append(
+                    '<span class="label patch-label" style="%s">%s</span>'
+                    % (style, escape(project_label.name))
+                )
+
+    # Label name is escaped above. Color is formatted in a way that
+    # does not permit XSS
+    return mark_safe(''.join(output))  # noqa: S308
