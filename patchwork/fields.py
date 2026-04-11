@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import hashlib
+import json
 
 from django.db import models
 
@@ -51,3 +52,43 @@ class ColorField(models.Field):
 
         kwargs['form_class'] = forms.ColorField
         return super(ColorField, self).formfield(*args, **kwargs)
+
+
+def labels_default():
+    return []
+
+
+class LabelsField(models.JSONField):
+    description = (
+        'List of label identifiers. Labels are stored case-insensitive.'
+    )
+
+    def __init__(self, *args, **kwargs):
+        kwargs['default'] = labels_default
+        super(LabelsField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        if isinstance(value, str):
+            value = [value]
+
+        if not isinstance(value, list) or not all(
+            isinstance(label, str) for label in value
+        ):
+            raise ValueError("Labels value must be a list of strings")
+
+        return [v.lower() for v in value]
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+
+        if value is None:
+            return []
+
+        if isinstance(value, str):
+            value = json.JSONDecoder().decode(value)
+
+        return [v.lower() for v in value]
+
+    def from_db_value(self, value, *args, **kwargs):
+        return self.to_python(value)
