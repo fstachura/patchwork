@@ -1204,16 +1204,24 @@ class SubjectTest(TestCase):
     def test_labels(self):
         label = create_label(name='RFC')
 
-        self.assertEqual(list(parse_labels(['RFC'], label.project)), [label])
-        self.assertEqual(list(parse_labels(['rfcx'], label.project)), [])
+        prefixes = ['RFC']
+        self.assertEqual(list(parse_labels(prefixes, label.project)), [label])
+        self.assertEqual(prefixes, [])
+
+        prefixes = ['rfcx']
+        self.assertEqual(list(parse_labels(prefixes, label.project)), [])
+        self.assertEqual(prefixes, ['rfcx'])
 
         project = create_project()
-
-        self.assertEqual(list(parse_labels(['RFC'], project)), [])
+        prefixes = ['RFC']
+        self.assertEqual(list(parse_labels(prefixes, project)), [])
+        self.assertEqual(prefixes, ['RFC'])
 
         label = create_label(name='stuff', project=None)
 
-        self.assertEqual(list(parse_labels(['stuff'], project)), [label])
+        prefixes = ['stuff']
+        self.assertEqual(list(parse_labels(prefixes, project)), [label])
+        self.assertEqual(prefixes, [])
 
 
 class SubjectMatchTest(TestCase):
