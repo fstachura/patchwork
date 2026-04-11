@@ -35,6 +35,25 @@ Selectize.define('enter_key_submit', function (options) {
     })();
 });
 
+Selectize.define('mod_enter_key_submit', function (options) {
+    var self = this;
+
+    this.onKeyDown = (function (e) {
+        var original = self.onKeyDown;
+
+        return function (e) {
+            var wasOpened = this.isOpen;
+
+            if (e.keyCode === 13 && (e.shiftKey || e.ctrlKey)) {
+                self.trigger('submit');
+                return;
+            }
+
+            original.apply(this, arguments);
+        };
+    })();
+});
+
 $(document).ready(function() {
     $('#submitter_input').selectize({
         plugins: ['enter_key_submit'],
@@ -75,6 +94,28 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+
+    $('#labels_input').selectize({
+        plugins: ['mod_enter_key_submit'],
+        maxItems: null,
+        persist: false,
+        hideSelected: true,
+        delimiter: ' ',
+        options: [
+{% for label in project_labels %}
+            {
+                value: "{{ label.name }}",
+                text: "{{ label.name }}",
+            },
+{% endfor %}
+{% for label in project_labels %}
+            {
+                value: "-{{ label.name }}",
+                text: "-{{ label.name }}",
+            },
+{% endfor %}
+        ],
     });
 });
 </script>
