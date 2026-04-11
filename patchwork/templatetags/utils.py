@@ -16,3 +16,8 @@ def verbose_name_plural(obj):
 @register.simple_tag
 def is_editable(obj, user):
     return obj.is_editable(user)
+
+
+@register.filter(name='label_names')
+def label_names(labels):
+    return [label.name for label in labels]
