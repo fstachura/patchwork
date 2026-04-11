@@ -13,6 +13,7 @@ from rest_framework import status
 from patchwork.tests.unit.api import utils
 from patchwork.tests.utils import create_cover
 from patchwork.tests.utils import create_covers
+from patchwork.tests.utils import create_label
 from patchwork.tests.utils import create_maintainer
 from patchwork.tests.utils import create_series
 from patchwork.tests.utils import create_user
@@ -39,6 +40,11 @@ class TestCoverAPI(utils.APITestCase):
         self.assertIn(cover_obj.get_mbox_url(), cover_json['mbox'])
         self.assertIn(cover_obj.get_absolute_url(), cover_json['web_url'])
         self.assertIn('comments', cover_json)
+
+        # list fields
+
+        for label in cover_obj.labels.all():
+            self.assertIn(label.name, cover_json['labels'])
 
         # nested fields
 
@@ -130,6 +136,18 @@ class TestCoverAPI(utils.APITestCase):
         self.assertIn('url', resp.data[0])
         self.assertNotIn('mbox', resp.data[0])
         self.assertNotIn('web_url', resp.data[0])
+        self.assertNotIn('labels', resp.data[0])
+
+    def test_list_version_1_1(self):
+        create_cover()
+
+        resp = self.client.get(self.api_url(version='1.1'))
+        self.assertEqual(status.HTTP_200_OK, resp.status_code)
+        self.assertEqual(1, len(resp.data))
+        self.assertIn('url', resp.data[0])
+        self.assertIn('mbox', resp.data[0])
+        self.assertIn('web_url', resp.data[0])
+        self.assertNotIn('labels', resp.data[0])
 
     def test_list_bug_335(self):
         """Ensure we retrieve the embedded series project once."""
@@ -176,6 +194,15 @@ class TestCoverAPI(utils.APITestCase):
         """Ensure we get a 404 for an invalid cover ID."""
         with self.assertRaises(NoReverseMatch):
             self.client.get(self.api_url('foo'))
+
+    def test_detail_version_1_1(self):
+        cover = create_cover()
+
+        resp = self.client.get(self.api_url(cover.id, version='1.1'))
+        self.assertIn('url', resp.data)
+        self.assertIn('web_url', resp.data)
+        self.assertIn('comments', resp.data)
+        self.assertNotIn('labels', resp.data)
 
     def test_create_update_delete(self):
         user = create_maintainer()
