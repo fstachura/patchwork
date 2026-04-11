@@ -13,6 +13,7 @@ from patchwork.models import Check
 from patchwork.models import Cover
 from patchwork.models import CoverComment
 from patchwork.models import DelegationRule
+from patchwork.models import Label
 from patchwork.models import Patch
 from patchwork.models import PatchComment
 from patchwork.models import PatchRelation
@@ -44,11 +45,16 @@ class DelegationRuleInline(admin.TabularInline):
     fields = ('path', 'user', 'priority')
 
 
-@admin.register(Project)
+class LabelInline(admin.TabularInline):
+    model = Label
+    fields = ('name', 'description', 'color')
+
+
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'linkname', 'listid', 'listemail')
     inlines = [
         DelegationRuleInline,
+        LabelInline,
     ]
 
 
@@ -91,6 +97,7 @@ class PatchAdmin(admin.ModelAdmin):
         'is_pull_request',
     )
     list_filter = ('project', 'submitter', 'state', 'archived')
+    readonly_fields = ('labels',)
     list_select_related = ('submitter', 'project', 'state')
     search_fields = ('name', 'submitter__name', 'submitter__email')
     date_hierarchy = 'date'
@@ -194,3 +201,14 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(PatchRelation)
 class PatchRelationAdmin(admin.ModelAdmin):
     model = PatchRelation
+
+
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color')
+
+    def get_queryset(self, request):
+        qs = super(LabelAdmin, self).get_queryset(request)
+        return qs.filter(project=None)
+
+
+admin.site.register(Label, LabelAdmin)
