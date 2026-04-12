@@ -63,6 +63,8 @@ if debug_toolbar:
     ] + MIDDLEWARE  # noqa: F405
 
     INTERNAL_IPS = ['127.0.0.1', '::1', '172.18.0.1']
+    for n in range(2, 254):
+        INTERNAL_IPS.append(f'10.89.0.{n}')
 
 # django-dbbackup
 
