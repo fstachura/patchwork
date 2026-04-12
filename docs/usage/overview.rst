@@ -162,6 +162,18 @@ or a cover letter or the web URL to a patch or a series:
 
 __ https://www.kernel.org/doc/html/latest/process/submitting-patches.html
 
+Labels
+~~~~~~
+
+Labels are a way to organize and prioritize submissions. You can apply labels
+to patches and cover letters to signify priority, category, or any other marker
+you wish.
+
+Labels can be either global or tied to the project they are created in. Labels
+can have an optional description attached, which will provide a little insight
+into the purpose of the label. Labels are completely customizable and the
+labels available will vary by instance.
+
 Checks
 ~~~~~~
 
