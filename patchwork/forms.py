@@ -148,7 +148,10 @@ class PatchForm(forms.ModelForm):
         self.fields['labels'] = forms.ModelMultipleChoiceField(
             queryset=Label.objects.filter(
                 Q(project=project) | Q(project=None)),
-            widget=forms.SelectMultiple(attrs={'class': 'labels-field'}),
+            widget=forms.SelectMultiple(attrs={
+                'class': 'labels-field',
+                'placeholder': 'Labels'
+            }),
             required=False)
 
     class Meta:
@@ -232,7 +235,10 @@ class MultiplePatchForm(forms.Form):
         self.fields['labels'] = forms.ModelMultipleChoiceField(
             queryset=Label.objects.filter(
                 Q(project=project) | Q(project=None)),
-            widget=forms.SelectMultiple(attrs={'class': 'labels-field'}),
+            widget=forms.SelectMultiple(attrs={
+                'class': 'labels-field',
+                'placeholder': 'Labels to add'
+            }),
             required=False)
         self.fields['state'] = OptionalModelChoiceField(
             queryset=State.objects.all(),
