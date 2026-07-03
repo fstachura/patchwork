@@ -5,7 +5,7 @@
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, Count
 from django_filters import rest_framework
 from django_filters.rest_framework import FilterSet
 from django_filters import CharFilter
@@ -174,6 +174,26 @@ class SeriesFilterSet(TimestampMixin, BaseFilterSet):
 def msgid_filter(queryset, name, value):
     return queryset.filter(**{name: '<' + value + '>'})
 
+def labels_filter(queryset, _, value):
+    label_names = value.split(',')
+
+    labels_pos, labels_neg = [], []
+    for label in label_names:
+        if not label.startswith('-'):
+            labels_pos.append(label)
+        else:
+            labels_neg.append(label[1:])
+
+    if len(labels_neg) > 0:
+        queryset = queryset.exclude(labels__name__in=labels_neg)
+
+    if len(labels_pos) > 0:
+        queryset = queryset \
+            .filter(labels__name__in=labels_pos) \
+            .annotate(num_labels=Count('labels', distinct=True)) \
+            .filter(num_labels__gte=len(labels_pos))
+
+    return queryset
 
 class CoverFilterSet(TimestampMixin, BaseFilterSet):
     project = ProjectFilter(queryset=Project.objects.all(), distinct=False)
@@ -206,6 +226,7 @@ class PatchFilterSet(TimestampMixin, BaseFilterSet):
     state = StateFilter(queryset=State.objects.all(), distinct=False)
     hash = CharFilter(lookup_expr='iexact')
     msgid = CharFilter(method=msgid_filter)
+    labels = CharFilter(method=labels_filter)
 
     class Meta:
         model = Patch
@@ -225,6 +246,7 @@ class PatchFilterSet(TimestampMixin, BaseFilterSet):
         )
         versioned_fields = {
             '1.2': ('hash', 'msgid'),
+            '1.4': ('labels'),
         }
 
 
