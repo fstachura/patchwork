@@ -7,6 +7,7 @@ import logging
 import mailbox
 import os
 import sys
+import hashlib
 
 from django.core.management.base import BaseCommand
 
@@ -86,8 +87,29 @@ class Command(BaseCommand):
             return
 
         logger.info('Parsing %d mails', count)
+        ok_headers = [
+            'From', 'Subject',
+            'Message-Id', 'References', 'In-Reply-To', 'Reply-To', 
+            'List-Id', 'X-Mailing-List', 'Date', 'Content-Type', 'Content-Transfer-Encoding', 
+            'X-Patchwork-Hint'
+        ]
+
         for i, msg in enumerate(mbox):
             try:
+                for key in msg.keys():
+                    if key not in ok_headers:
+                        msg[key] = ''
+
+                name, mail = msg['From'].split('<', maxsplit=1)
+                mail = mail[:-1]
+                msg['From'] = f"{name} <{hashlib.md5(mail.encode()).digest().hex()}@fbstc.ovh>"
+
+                for key in ['Message-Id', 'References', 'In-Reply-To', 'Reply-To']:
+                    if key not in msg:
+                        continue
+
+                    msg[key] = f"<{hashlib.md5(msg['key'].encode()).digest().hex()}@fbstc.ovh>"
+
                 obj = parse_mail(msg, options['list_id'])
                 if obj:
                     results[type(obj)] += 1
