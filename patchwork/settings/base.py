@@ -227,6 +227,9 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': True,
         },
+        #'django.db.backends': {
+        #    'level': 'DEBUG',
+        #},
         'patchwork.parser': {
             'handlers': ['console'],
             'level': 'WARNING',

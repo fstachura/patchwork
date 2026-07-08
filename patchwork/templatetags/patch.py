@@ -72,7 +72,7 @@ def patch_commit_display(patch):
     )
 
 @register.filter(name='patch_labels')
-def patch_labels(patch):
+def patch_labels(patch, project_labels):
 
     def text_color(hex_color):
         """Generate the ideal text color given a background color.
@@ -86,7 +86,7 @@ def patch_labels(patch):
         return '#000' if brightness >= 123 else '#fff'
 
     output = []
-    for label in patch.labels.all():
+    for label in patch.get_labels(project_labels):
         style = 'background-color: %s; color: %s' % (
             label.color, text_color(label.color))
         output.append('<span class="label" style="%s">%s</span>' % (

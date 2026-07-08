@@ -468,6 +468,7 @@ class SubmissionMixin(FilenameMixin, EmailMixin, models.Model):
 
     name = models.CharField(max_length=255)
     labels = models.ManyToManyField(Label)
+    labels_cache = models.TextField(default='')
 
     @cached_property
     def list_archive_url(self):
@@ -482,6 +483,21 @@ class SubmissionMixin(FilenameMixin, EmailMixin, models.Model):
         )
 
     # patchwork metadata
+
+    def refresh_labels(self):
+        self.labels_cache = " ".join([l.name for l in self.labels.all()])
+        self.save()
+
+    def get_labels(self, project_labels):
+        labels_str = self.labels_cache.split(' ')
+        result = []
+        for label in labels_str:
+            for plabel in project_labels:
+                if plabel.name == label:
+                    result.append(plabel)
+                    break
+        
+        return result
 
     def is_editable(self, user):
         return False
