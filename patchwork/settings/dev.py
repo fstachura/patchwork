@@ -30,7 +30,8 @@ ALLOWED_HOSTS = ['*']
 
 SECRET_KEY = '00000000000000000000000000000000000000000000000000'  # noqa
 
-DEBUG = True
+#DEBUG = True
+DEBUG = False
 
 if DATABASES['default']['ENGINE'] == 'mysql':  # noqa: F405
     DATABASES['default']['TEST'] = {'CHARSET': 'utf8'}  # noqa: F405
@@ -52,17 +53,17 @@ PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 # django-debug-toolbar
 
-if debug_toolbar:
-    INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
-
-    DEBUG_TOOLBAR_PATCH_SETTINGS = False
-
-    # This should go first in the middleware classes
-    MIDDLEWARE = [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ] + MIDDLEWARE  # noqa: F405
-
-    INTERNAL_IPS = ['127.0.0.1', '::1', '172.18.0.1']
+#if debug_toolbar:
+#    INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
+#
+#    DEBUG_TOOLBAR_PATCH_SETTINGS = False
+#
+#    # This should go first in the middleware classes
+#    MIDDLEWARE = [
+#        'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    ] + MIDDLEWARE  # noqa: F405
+#
+#    INTERNAL_IPS = ['127.0.0.1', '::1', '172.18.0.1']
 
 # django-dbbackup
 
@@ -72,6 +73,8 @@ if dbbackup:
     ]
 
     DBBACKUP_STORAGE_OPTIONS = {'location': '.backups'}
+
+MIDDLEWARE += ["whitenoise.middleware.WhiteNoiseMiddleware"]
 
 #
 # Patchwork settings

@@ -37,6 +37,7 @@ RUN pip install -r /opt/requirements-dev.txt
 
 COPY tools/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python3", "-m", "gunicorn", "patchwork.wsgi", "-w", "4", "--threads", "4", "--log-level=DEBUG", "--capture-output", "-b", "0.0.0.0:8000"]
 USER ubuntu
 WORKDIR /home/ubuntu/patchwork
