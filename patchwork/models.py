@@ -914,6 +914,7 @@ class Series(FilenameMixin, models.Model):
         help_text='Number of patches in series as '
         'indicated by the subject prefix(es)'
     )
+    labels = models.ManyToManyField(Label)
 
     @staticmethod
     def _format_name(obj):

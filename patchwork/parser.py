@@ -635,8 +635,9 @@ def parse_labels(subject_prefixes, project):
     Args:
         subject_prefixes: List of subject prefixes to extract tags from
     """
-    labels = Label.objects.filter(Q(project=project) | Q(project=None),
-                                  name__in=subject_prefixes)
+    labels = Label.objects.filter(
+        Q(project=project) | Q(project=None), name__in=subject_prefixes
+    )
     for label in labels:
         if label.name in subject_prefixes:
             subject_prefixes.remove(label.name)
@@ -1259,6 +1260,7 @@ def parse_mail(mail, list_id=None):
     refs = find_references(mail)
     date = find_date(mail)
     headers = find_headers(mail)
+    labels = list(parse_labels(prefixes, project).all())
 
     # parse content
 
@@ -1287,8 +1289,6 @@ def parse_mail(mail, list_id=None):
             if Patch.objects.filter(project=project, msgid=msgid):
                 raise DuplicateMailError(msgid=msgid)
 
-            labels = parse_labels(prefixes, project)
-
             patch = Patch.objects.create(
                 msgid=msgid,
                 project=project,
@@ -1303,7 +1303,7 @@ def parse_mail(mail, list_id=None):
                 state=find_state(mail),
             )
             if labels:
-                patch.labels.set(labels)
+                patch.labels.set(*labels)
 
             logger.debug('Patch saved')
 
@@ -1353,6 +1353,8 @@ def parse_mail(mail, list_id=None):
                             version=version,
                             total=n,
                         )
+                        if labels:
+                            series.labels.set(*labels)
 
                         # NOTE(stephenfin) We must save references for series.
                         # We do this to handle the case where a later patch is
@@ -1411,6 +1413,8 @@ def parse_mail(mail, list_id=None):
             # TODO(stephenfin): Remove 'series' from the conditional as we will
             # always have a series
             series.add_patch(patch, x)
+            if labels:
+                patch.labels.add(series.labels.all())
 
         # parse patch dependencies
         series.add_dependencies(parse_depends_on(message))
@@ -1456,6 +1460,8 @@ def parse_mail(mail, list_id=None):
                     version=version,
                     total=n,
                 )
+                if labels:
+                    series.labels.set(*labels)
 
                 # we don't save the in-reply-to or references fields
                 # for a cover letter, as they can't refer to the same
@@ -1477,6 +1483,8 @@ def parse_mail(mail, list_id=None):
                     submitter=author,
                     content=message,
                 )
+                if labels:
+                    cover_letter.labels.set(*labels)
 
             logger.debug('Cover letter saved')
 

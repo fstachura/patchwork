@@ -178,6 +178,7 @@
 {% if patch.series %}
           <a href="?series={{patch.series.id}}">
             {{ patch.series|truncatechars:100 }}
+            {{ patch.series|patch_labels }}
           </a>
 {% endif %}
         </td>
