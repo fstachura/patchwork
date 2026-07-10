@@ -914,6 +914,7 @@ class Series(FilenameMixin, models.Model):
         help_text='Number of patches in series as '
         'indicated by the subject prefix(es)'
     )
+    labels = models.ManyToManyField(Label)
 
     @staticmethod
     def _format_name(obj):
@@ -964,6 +965,12 @@ class Series(FilenameMixin, models.Model):
             return
 
         self.cover_letter = cover
+        labels = list(cover.labels.iterator())
+        self.labels.set(labels)
+
+        # Update labels in older patches that came before cover letter
+        for patch in Patch.objects.filter(series=self).iterator():
+            patch.labels.add(*labels)
 
         # we allow "upgrading of series names. Names from different
         # sources are prioritized:

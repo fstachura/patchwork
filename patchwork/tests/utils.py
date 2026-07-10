@@ -326,7 +326,7 @@ def create_label(**kwargs):
 
     values = {
         'name': 'label%d' % num,
-        'project': create_project() if 'project' not in kwargs else None,
+        'project': create_project() if 'project' not in kwargs else kwargs['project'],
         'color': '#fff',
     }
     values.update(**kwargs)

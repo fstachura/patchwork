@@ -805,9 +805,9 @@ class SeriesNameTestCase(TestCase):
         mbox.close()
 
 
-class SeriesDependencyBase(TestCase):
+class SeriesMboxTemplateBase(TestCase):
     """
-    Base class for test cases that test series dependencies.
+    Base class for test cases that use mbox templates
     """
 
     def _load_mbox_template(self, name, **kwargs):
@@ -849,7 +849,7 @@ class SeriesDependencyBase(TestCase):
         )
 
 
-class SeriesDependencyTestCase(SeriesDependencyBase):
+class SeriesDependencyTestCase(SeriesMboxTemplateBase):
     def setUp(self):
         self.project = utils.create_project()
         utils.create_state()
@@ -1079,3 +1079,98 @@ class SeriesDependencyTestCase(SeriesDependencyBase):
         self.assertEqual(series2.dependencies.count(), 1)
         self.assertEqual(series3.dependencies.count(), 2)
         self.assertEqual(series3.dependents.count(), 0)
+
+
+class SeriesPatchLabelInheritanceTestCase(SeriesMboxTemplateBase):
+    def setUp(self):
+        self.project = utils.create_project()
+        self.label_series = utils.create_label(project=self.project)
+        self.label_series2 = utils.create_label(project=self.project)
+        self.label_patch1 = utils.create_label(project=self.project)
+        self.label_patch2 = utils.create_label(project=self.project)
+        utils.create_state()
+
+    def _parse_mail(self, mail):
+        return parser.parse_mail(mail, self.project.listid)
+
+    def test_inheritance_basic(self):
+        mbox = self._load_mbox_template(
+            'inheritance-base.mbox.template',
+            label_series=self.label_series.name,
+            label_patch_a=self.label_patch1.name,
+            label_patch_b=self.label_patch2.name,
+        )
+
+        patch0 = self._parse_mail(mbox[0])
+        self.assertEqual(patch0.labels.count(), 1)
+        self.assertEqual(patch0.labels.first(), self.label_series)
+
+        patch1 = self._parse_mail(mbox[1])
+        self.assertEqual(patch1.labels.count(), 2)
+        for label in patch1.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_patch1])
+
+        patch2 = self._parse_mail(mbox[2])
+        self.assertEqual(patch1.labels.count(), 2)
+        for label in patch2.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_patch2])
+
+        mbox.close()
+
+
+    def test_inheritance_many_labels(self):
+        mbox = self._load_mbox_template(
+            'inheritance-many.mbox.template',
+            label_series_a=self.label_series.name,
+            label_series_b=self.label_series2.name,
+            label_patch_a=self.label_patch1.name,
+            label_patch_b=self.label_patch2.name,
+        )
+
+        patch0 = self._parse_mail(mbox[0])
+        self.assertEqual(patch0.labels.count(), 2)
+        for label in patch0.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_series2])
+
+        patch1 = self._parse_mail(mbox[1])
+        self.assertEqual(patch1.labels.count(), 4)
+        for label in patch1.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_series2, self.label_patch1, self.label_patch2])
+
+        patch2 = self._parse_mail(mbox[2])
+        self.assertEqual(patch2.labels.count(), 3)
+        for label in patch2.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_series2, self.label_patch2])
+
+        mbox.close()
+
+    def test_out_of_order(self):
+        mbox = self._load_mbox_template(
+            'inheritance-out-of-order.mbox.template',
+            label_series=self.label_series.name,
+            label_series2=self.label_series2.name,
+            label_patch_a=self.label_patch1.name,
+            label_patch_b=self.label_patch2.name,
+        )
+
+        patch1 = self._parse_mail(mbox[0])
+        patch0 = self._parse_mail(mbox[1])
+        patch2 = self._parse_mail(mbox[2])
+        patch2.refresh_from_db()
+        patch1.refresh_from_db()
+        patch0.refresh_from_db()
+
+        self.assertEqual(patch0.labels.count(), 2)
+        for label in patch0.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_series2])
+
+        self.assertEqual(patch1.labels.count(), 3)
+        for label in patch1.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_series2, self.label_patch1])
+
+        self.assertEqual(patch2.labels.count(), 3)
+        for label in patch2.labels.iterator():
+            self.assertIn(label, [self.label_series, self.label_series2, self.label_patch2])
+
+        mbox.close()
+
