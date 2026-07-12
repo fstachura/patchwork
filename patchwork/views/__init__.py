@@ -312,9 +312,11 @@ def generic_list(
         'delegate',
         'project',
         'series__name',
+        'series__labels',
         'name',
         'date',
         'msgid',
+        'labels',
     )
 
     # we also need checks and series
@@ -326,8 +328,8 @@ def generic_list(
             ),
         )
     )
-    patches = patches.prefetch_related(
-        Prefetch('labels', queryset=Label.objects.only('name')))
+    #patches = patches.prefetch_related(
+    #    Prefetch('labels', queryset=Label.objects.only('name')))
 
     paginator = Paginator(request, patches)
 

@@ -7,6 +7,7 @@
 import hashlib
 
 from django.db import models
+from django.forms import MultipleChoiceField
 
 
 class HashField(models.CharField):
@@ -52,3 +53,40 @@ class ColorField(models.Field):
 
         kwargs['form_class'] = forms.ColorField
         return super(ColorField, self).formfield(*args, **kwargs)
+
+
+class LabelsField(models.TextField):
+    description = 'Field that can store many arrays'
+
+    def __init__(self, *args, **kwargs):
+        if 'default' not in kwargs:
+            kwargs['default'] = ''
+        super(LabelsField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        if any('|' in v for v in value):
+            raise ValueError("pipe is forbidden in label names: " + ",".join(value))
+
+        return '|' + '|'.join(value) + '|'
+
+    def parse_str(self, s):
+        return s[1:-1].split('|')
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+
+        if value is None:
+            return []
+
+        return self.parse_str(value)
+
+    def from_db_value(self, value, *args, **kwargs):
+        return self.to_python(value)
+
+    def formfield(self, *args, **kwargs):
+        defaults = {'form_class': MultipleChoiceField, 'choices': []}
+        defaults.update(kwargs)
+
+        return super(LabelsField, self).formfield(*args, **kwargs)
+

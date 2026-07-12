@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils import timezone as tz_utils
 
-from patchwork.fields import HashField, ColorField
+from patchwork.fields import HashField, ColorField, LabelsField
 from patchwork.hasher import hash_diff
 
 if settings.ENABLE_REST_API:
@@ -467,7 +467,7 @@ class SubmissionMixin(FilenameMixin, EmailMixin, models.Model):
     # submission metadata
 
     name = models.CharField(max_length=255)
-    labels = models.ManyToManyField(Label)
+    labels = LabelsField()
 
     @cached_property
     def list_archive_url(self):
@@ -914,7 +914,7 @@ class Series(FilenameMixin, models.Model):
         help_text='Number of patches in series as '
         'indicated by the subject prefix(es)'
     )
-    labels = models.ManyToManyField(Label)
+    labels = LabelsField()
 
     @staticmethod
     def _format_name(obj):

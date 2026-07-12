@@ -172,13 +172,13 @@
           <a href="{% url 'patch-detail' project_id=project.linkname msgid=patch.encoded_msgid %}">
             {{ patch.name|default:"[no subject]"|truncatechars:100 }}
           </a>
-          {{ patch|patch_labels }}
+          {{ patch|patch_labels:project_labels }}
         </td>
         <td id="patch-series:{{patch.id}}">
 {% if patch.series %}
           <a href="?series={{patch.series.id}}">
             {{ patch.series|truncatechars:100 }}
-            {{ patch.series|patch_labels }}
+            {{ patch.series|patch_labels:project_labels }}
           </a>
 {% endif %}
         </td>

@@ -545,21 +545,11 @@ class LabelsFilter(Filter):
         if len(label_names) == 0:
             return queryset
 
-        labels_pos, labels_neg = [], []
         for label in label_names:
             if not label.startswith('-'):
-                labels_pos.append(label)
+                queryset = queryset.filter(labels__icontains='|'+label+'|')
             else:
-                labels_neg.append(label[1:])
-
-        if len(labels_neg) > 0:
-            queryset = queryset.exclude(labels__name__in=labels_neg)
-
-        if len(labels_pos) > 0:
-            queryset = queryset \
-                .filter(labels__name__in=labels_pos) \
-                .annotate(num_labels=Count('labels', distinct=True)) \
-                .filter(num_labels__gte=len(labels_pos))
+                queryset = queryset.exclude(labels__icontains='|'+label[1:]+'|')
 
         return queryset
 
