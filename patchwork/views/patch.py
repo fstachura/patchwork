@@ -11,12 +11,14 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.urls import reverse
+from django.db.models import Q
 
 from patchwork.forms import CreateBundleForm
 from patchwork.forms import PatchForm
 from patchwork.models import Cover
 from patchwork.models import Patch
 from patchwork.models import Project
+from patchwork.models import Label
 from patchwork.views import generic_list
 from patchwork.views import set_bundle
 from patchwork.views.utils import patch_to_mbox
@@ -125,6 +127,10 @@ def patch_detail(request, project_id, msgid):
     context['project'] = patch.project
     context['related_same_project'] = related_same_project
     context['related_different_project'] = related_different_project
+    context['project_labels'] = Label.objects \
+        .filter(Q(project=project) | Q(project__isnull=True)) \
+        .all()
+
     if errors:
         context['errors'] = errors
 

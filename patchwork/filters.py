@@ -14,8 +14,7 @@ from django.utils.safestring import mark_safe
 from patchwork.models import Person
 from patchwork.models import Series
 from patchwork.models import State
-from patchwork.models import exclude_submissions_by_labels
-from patchwork.models import filter_submissions_by_labels
+from patchwork.models import Label
 
 
 class Filter(object):
@@ -547,15 +546,25 @@ class LabelsFilter(Filter):
         if len(label_names) == 0:
             return queryset
 
-        labels_pos, labels_neg = [], []
+        labels_pos = []
+        labels_neg = []
+
         for label in label_names:
             if not label.startswith('-'):
                 labels_pos.append(label)
             else:
                 labels_neg.append(label[1:])
 
-        queryset = exclude_submissions_by_labels(queryset, labels_neg)
-        queryset = filter_submissions_by_labels(queryset, labels_pos)
+        # TODO: project_id
+        labels_pos = Label.objects.filter(name__in=labels_pos, deleted=False).only('id').all()
+        labels_neg = Label.objects.filter(name__in=labels_neg, deleted=False).only('id').all()
+
+        for l in labels_pos:
+            queryset = queryset.filter(labels__contains=l.id)
+
+        for l in labels_neg:
+            queryset = queryset.exclude(labels__contains=l.id)
+
         return queryset
 
     @property

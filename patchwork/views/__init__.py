@@ -190,7 +190,7 @@ def generic_list(
         filter_settings = []
 
     project_labels = Label.objects \
-        .filter(Q(project=project) | Q(project__isnull=True)) \
+        .filter(Q(project=project) | Q(project__isnull=True), deleted=False) \
         .all()
 
     filters = Filters(request)
@@ -315,6 +315,7 @@ def generic_list(
         'name',
         'date',
         'msgid',
+        'labels',
     )
 
     # we also need checks and series
@@ -325,9 +326,6 @@ def generic_list(
                 'context', 'user_id', 'patch_id', 'state', 'date'
             ),
         )
-    )
-    patches = patches.prefetch_related(
-        Prefetch('labels', queryset=Label.objects.only('name', 'color')),
     )
 
     paginator = Paginator(request, patches)

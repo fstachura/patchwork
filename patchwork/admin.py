@@ -50,6 +50,7 @@ class LabelInline(admin.TabularInline):
     fields = ('name', 'description', 'color')
 
 
+@admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'linkname', 'listid', 'listemail')
     inlines = [
@@ -109,6 +110,11 @@ class PatchAdmin(admin.ModelAdmin):
     )
     def is_pull_request(self, patch):
         return bool(patch.pull_url)
+
+    def formfield_for_choice_field(self, db_field, request, **kwargs):
+        raise 'formfield choice'
+
+        return super().formfield_for_choice_field(db_field, request, **kwargs)
 
 
 @admin.register(CoverComment)

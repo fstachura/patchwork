@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils import timezone as tz_utils
 
-from patchwork.fields import HashField, ColorField
+from patchwork.fields import HashField, ColorField, LabelsField
 from patchwork.hasher import hash_diff
 
 if settings.ENABLE_REST_API:
@@ -279,6 +279,14 @@ class Label(models.Model):
         'applied.')
     color = ColorField(
         help_text='The color code to use in the UI.')
+    deleted = models.BooleanField(
+        default=False,
+        help_text='Waiting for deletion'
+    )
+
+    def delete(self):
+        self.deleted = True
+        self.save()
 
     def __str__(self):
         return self.name
@@ -467,7 +475,7 @@ class SubmissionMixin(FilenameMixin, EmailMixin, models.Model):
     # submission metadata
 
     name = models.CharField(max_length=255)
-    labels = models.ManyToManyField(Label)
+    labels = LabelsField()
 
     @cached_property
     def list_archive_url(self):

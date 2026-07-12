@@ -5,8 +5,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import hashlib
+import json
 
 from django.db import models
+from django.forms import MultipleChoiceField
 
 
 class HashField(models.CharField):
@@ -52,3 +54,39 @@ class ColorField(models.Field):
 
         kwargs['form_class'] = forms.ColorField
         return super(ColorField, self).formfield(*args, **kwargs)
+
+
+def labels_default():
+    return []
+
+class LabelsField(models.JSONField):
+    description = 'Field that contains references to labels'
+
+    def __init__(self, *args, **kwargs):
+        kwargs['default'] = labels_default
+        super(LabelsField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        return value
+
+    def to_python(self, value):
+        if isinstance(value, list):
+            return value
+
+        if value is None:
+            return []
+
+        if isinstance(value, str):
+            value = json.JSONDecoder().decode(value)
+
+        return value
+
+    def from_db_value(self, value, *args, **kwargs):
+        return self.to_python(value)
+
+    def formfield(self, *args, **kwargs):
+        defaults = {'form_class': MultipleChoiceField, 'choices': []}
+        defaults.update(kwargs)
+
+        return super(LabelsField, self).formfield(*args, **kwargs)
+

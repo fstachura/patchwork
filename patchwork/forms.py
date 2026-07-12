@@ -5,6 +5,7 @@
 
 
 import django
+import re
 from django.contrib.auth.models import User
 from django import forms
 from django.forms import widgets, renderers
@@ -145,9 +146,13 @@ class PatchForm(forms.ModelForm):
             widget=forms.Select(attrs={'class': 'change-property-delegate'}),
             required=False,
         )
-        self.fields['labels'] = forms.ModelMultipleChoiceField(
-            queryset=Label.objects.filter(
-                Q(project=project) | Q(project=None)),
+        labels = Label.objects.filter(
+            Q(project=project) | Q(project=None),
+            deleted=False
+        ).all()
+        labels = [(l.name, l.name) for l in labels]
+        self.fields['labels'] = forms.MultipleChoiceField(
+            choices=labels,
             widget=forms.SelectMultiple(attrs={
                 'class': 'labels-field',
                 'placeholder': 'Labels'
@@ -232,14 +237,19 @@ class MultiplePatchForm(forms.Form):
             label='Delegate to',
             required=False,
         )
-        self.fields['labels'] = forms.ModelMultipleChoiceField(
-            queryset=Label.objects.filter(
-                Q(project=project) | Q(project=None)),
+        labels = Label.objects.filter(
+            Q(project=project) | Q(project=None),
+            deleted=False,
+        ).all()
+        labels = [(l.name, l.name) for l in labels]
+        self.fields['labels'] = forms.MultipleChoiceField(
+            choices=labels,
             widget=forms.SelectMultiple(attrs={
                 'class': 'labels-field',
                 'placeholder': 'Labels to add'
             }),
-            required=False)
+            required=False
+        )
         self.fields['state'] = OptionalModelChoiceField(
             queryset=State.objects.all(),
             placeholder='Change state',
@@ -264,8 +274,11 @@ class MultiplePatchForm(forms.Form):
             if not field:
                 continue
 
-            if field.is_no_change(data[f.name]):
+            if f.name == 'labels':
                 continue
+            else:
+                if field.is_no_change(data[f.name]):
+                    continue
 
             setattr(instance, f.name, data[f.name])
 
