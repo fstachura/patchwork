@@ -52,7 +52,7 @@ PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 # django-debug-toolbar
 
-if debug_toolbar:
+if debug_toolbar and DEBUG:
     INSTALLED_APPS += ['debug_toolbar']  # noqa: F405
 
     DEBUG_TOOLBAR_PATCH_SETTINGS = False
@@ -65,6 +65,8 @@ if debug_toolbar:
     INTERNAL_IPS = ['127.0.0.1', '::1', '172.18.0.1']
     for n in range(2, 254):
         INTERNAL_IPS.append(f'10.89.0.{n}')
+        INTERNAL_IPS.append(f'10.89.1.{n}')
+        INTERNAL_IPS.append(f'10.89.2.{n}')
 
 # django-dbbackup
 
@@ -74,6 +76,10 @@ if dbbackup:
     ]
 
     DBBACKUP_STORAGE_OPTIONS = {'location': '.backups'}
+
+MIDDLEWARE += ["whitenoise.middleware.WhiteNoiseMiddleware"]
+
+STATIC_ROOT = "static"
 
 #
 # Patchwork settings
