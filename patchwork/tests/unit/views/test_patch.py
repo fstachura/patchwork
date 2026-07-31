@@ -23,9 +23,9 @@ from patchwork.tests.utils import create_patch_comment
 from patchwork.tests.utils import create_patches
 from patchwork.tests.utils import create_person
 from patchwork.tests.utils import create_project
+from patchwork.tests.utils import create_label
 from patchwork.tests.utils import create_state
 from patchwork.tests.utils import create_user
-from patchwork.tests.utils import create_label
 from patchwork.tests.utils import read_patch
 
 

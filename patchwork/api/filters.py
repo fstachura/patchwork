@@ -175,6 +175,18 @@ def msgid_filter(queryset, name, value):
     return queryset.filter(**{name: '<' + value + '>'})
 
 
+def labels_filter(queryset, _, value):
+    label_names = value.split(',')
+
+    for label in label_names:
+        if label.startswith('-'):
+            queryset = queryset.exclude_label(label[1:])
+        else:
+            queryset = queryset.include_label(label)
+
+    return queryset
+
+
 class CoverFilterSet(TimestampMixin, BaseFilterSet):
     project = ProjectFilter(queryset=Project.objects.all(), distinct=False)
     # NOTE(stephenfin): We disable the select-based HTML widgets for these
@@ -186,6 +198,7 @@ class CoverFilterSet(TimestampMixin, BaseFilterSet):
     )
     submitter = PersonFilter(queryset=Person.objects.all(), distinct=False)
     msgid = CharFilter(method=msgid_filter)
+    labels = CharFilter(method=labels_filter)
 
     class Meta:
         model = Cover
@@ -206,6 +219,7 @@ class PatchFilterSet(TimestampMixin, BaseFilterSet):
     state = StateFilter(queryset=State.objects.all(), distinct=False)
     hash = CharFilter(lookup_expr='iexact')
     msgid = CharFilter(method=msgid_filter)
+    labels = CharFilter(method=labels_filter)
 
     class Meta:
         model = Patch
@@ -225,6 +239,7 @@ class PatchFilterSet(TimestampMixin, BaseFilterSet):
         )
         versioned_fields = {
             '1.2': ('hash', 'msgid'),
+            '1.4': ('labels'),
         }
 
 

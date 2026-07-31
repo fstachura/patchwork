@@ -192,6 +192,9 @@ def create_patch(**kwargs):
     }
     values.update(kwargs)
 
+    if 'labels' in values:
+        values['labels'] = [label.name for label in values['labels']]
+
     patch = Patch.objects.create(**values)
 
     if series:

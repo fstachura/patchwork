@@ -10,6 +10,7 @@ from django.urls import NoReverseMatch
 from django.urls import reverse
 from rest_framework import status
 
+from patchwork.models import Label
 from patchwork.tests.unit.api import utils
 from patchwork.tests.utils import create_cover
 from patchwork.tests.utils import create_covers
@@ -42,7 +43,7 @@ class TestCoverAPI(utils.APITestCase):
 
         # list fields
 
-        for label in cover_obj.labels.all():
+        for label in Label.objects.filter(id__in=cover_obj.labels).all():
             self.assertIn(label.name, cover_json['labels'])
 
         # nested fields
@@ -153,7 +154,7 @@ class TestCoverAPI(utils.APITestCase):
         series = create_series()
         create_covers(5, series=series)
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(3):
             self.client.get(self.api_url())
 
     @utils.store_samples('cover-detail')
