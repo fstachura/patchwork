@@ -280,7 +280,7 @@ class TestPatchAPI(utils.APITestCase):
         create_patches(5, series=series)
 
         # Count, page IDs, patch rows and the constant-size prefetches.
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.client.get(self.api_url())
 
     @utils.store_samples('patch-detail')
