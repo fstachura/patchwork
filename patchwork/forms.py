@@ -151,7 +151,7 @@ class PatchForm(forms.ModelForm):
             ),
             required=False,
             widget=forms.SelectMultiple(
-                attrs={'class': 'labels-field'}
+                attrs={'class': 'labels-field', 'placeholder': 'Labels'}
             ),
         )
 
@@ -238,7 +238,7 @@ class MultiplePatchForm(forms.Form):
                 Q(project=project) | Q(project=None)
             ),
             widget=forms.SelectMultiple(
-                attrs={'class': 'labels-field'}
+                attrs={'class': 'labels-field', 'placeholder': 'Labels to add'}
             ),
             required=False,
         )
