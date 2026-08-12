@@ -735,6 +735,17 @@ class Patch(SubmissionMixin):
                 ],
                 name='patch_covering_idx',
             ),
+            models.Index(
+                fields=[
+                    'project',
+                    'archived',
+                    'state',
+                    '-date',
+                    'delegate',
+                    'submitter',
+                ],
+                name='patch_covering_idx_default',
+            ),
         ]
 
 
