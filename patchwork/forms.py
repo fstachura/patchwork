@@ -16,6 +16,7 @@ from patchwork.models import Bundle
 from patchwork.models import Patch
 from patchwork.models import State
 from patchwork.models import UserProfile
+from patchwork.models import Label
 
 
 class PatchworkTableRenderer(renderers.EngineMixin, renderers.BaseRenderer):
@@ -280,3 +281,44 @@ class ColorField(forms.CharField):
         attrs = super().widget_attrs(widget)
         attrs['maxlength'] = 7
         return attrs
+
+
+class LabelsField(forms.MultipleChoiceField):
+    default_error_messages = {
+        'invalid': 'Label id is not an integer',
+        'unknown': 'Unknown label',
+    }
+
+    def __init__(self, project, *args, **kwargs):
+        self.labels = Label.objects.filter(
+            Q(project=project) | Q(project=None),
+        ).all()
+        defaults = {
+            'choices': [(label.name, label.name) for label in self.labels],
+            'widget': forms.SelectMultiple(
+                attrs={'class': 'labels-field', 'placeholder': 'Labels to add'}
+            ),
+            'required': False,
+        }
+        defaults.update(kwargs)
+        super(forms.MultipleChoiceField, self).__init__(*args, **defaults)
+
+    def is_no_change(self, value):
+        return len(value) == 0
+
+    def clean(self, value):
+        if value is None:
+            return []
+
+        result = []
+        labels = set(label.name for label in self.labels)
+        for n in value:
+            try:
+                if n not in labels:
+                    raise forms.ValidationError(self.error_messages['unknown'])
+
+                result.append(n)
+            except ValueError:
+                raise forms.ValidationError(self.error_messages['invalid'])
+
+        return result
