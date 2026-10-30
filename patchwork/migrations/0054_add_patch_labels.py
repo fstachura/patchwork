@@ -73,14 +73,16 @@ class Migration(migrations.Migration):
             model_name='cover',
             name='labels',
             field=patchwork.fields.LabelsField(
-                default=patchwork.fields.labels_default
+                default=None,
+                null=True,
             ),
         ),
         migrations.AddField(
             model_name='patch',
             name='labels',
             field=patchwork.fields.LabelsField(
-                default=patchwork.fields.labels_default
+                default=None,
+                null=True,
             ),
         ),
     ]

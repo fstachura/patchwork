@@ -54,17 +54,14 @@ class ColorField(models.Field):
         return super(ColorField, self).formfield(*args, **kwargs)
 
 
-def labels_default():
-    return []
-
-
 class LabelsField(models.JSONField):
     description = (
         'List of label identifiers. Labels are stored case-insensitive.'
     )
 
     def __init__(self, *args, **kwargs):
-        kwargs['default'] = labels_default
+        kwargs['default'] = None
+        kwargs['null'] = True
         super(LabelsField, self).__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
@@ -76,7 +73,10 @@ class LabelsField(models.JSONField):
         ):
             raise ValueError("Labels value must be a list of strings")
 
-        return [v.lower() for v in value]
+        if len(value) == 0:
+            return None
+        else:
+            return [v.lower() for v in value]
 
     def to_python(self, value):
         if isinstance(value, list):
