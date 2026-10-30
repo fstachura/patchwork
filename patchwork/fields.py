@@ -64,7 +64,10 @@ class LabelsField(models.JSONField):
         kwargs['null'] = True
         super(LabelsField, self).__init__(*args, **kwargs)
 
-    def get_prep_value(self, value):
+    def get_prep_db_save(self, value):
+        if value is None:
+            return None
+
         if isinstance(value, str):
             value = [value]
 
@@ -74,9 +77,12 @@ class LabelsField(models.JSONField):
             raise ValueError("Labels value must be a list of strings")
 
         if len(value) == 0:
-            return None
+            value = None
         else:
-            return [v.lower() for v in value]
+            value = [v.lower() for v in value]
+
+        # stores None as SQL NULL, not JSON NULL
+        return super(LabelsField).get_prep_db_save(value)
 
     def to_python(self, value):
         if isinstance(value, list):

@@ -194,6 +194,8 @@ def create_patch(**kwargs):
 
     if 'labels' in values:
         values['labels'] = [label.name for label in values['labels']]
+    else:
+        values['labels'] = []
 
     patch = Patch.objects.create(**values)
 
@@ -231,6 +233,7 @@ def create_cover(**kwargs):
         'name': 'testpatch%d' % num,
         'headers': '',
         'content': 'foo',
+        'labels': [],
     }
     values.update(kwargs)
 

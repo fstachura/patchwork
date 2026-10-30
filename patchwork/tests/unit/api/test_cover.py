@@ -43,7 +43,7 @@ class TestCoverAPI(utils.APITestCase):
 
         # list fields
 
-        for label in Label.objects.filter(id__in=cover_obj.labels).all():
+        for label in Label.objects.filter(name__in=cover_obj.labels).all():
             self.assertIn(label.name, cover_json['labels'])
 
         # nested fields

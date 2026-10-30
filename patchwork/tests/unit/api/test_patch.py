@@ -58,7 +58,7 @@ class TestPatchAPI(utils.APITestCase):
 
         # list fields
 
-        for label in Label.objects.filter(id__in=patch_obj.labels).all():
+        for label in Label.objects.filter(name__in=patch_obj.labels).all():
             self.assertIn(label.name, patch_json['labels'])
 
         # nested fields
@@ -132,6 +132,9 @@ class TestPatchAPI(utils.APITestCase):
                 .order_by(order)
                 .values_list('id', flat=True)
             )[2:4]
+            print(Patch.objects.filter(project=project).order_by('id').query)
+            print([p.id for p in Patch.objects.filter(project=project).order_by('id')])
+            print(expected)
             response = self.client.get(
                 self.api_url(),
                 {
@@ -302,10 +305,10 @@ class TestPatchAPI(utils.APITestCase):
         create_patch(**patch_kwargs)
         patch1 = create_patch(**patch_kwargs, labels=[label])
 
-        resp = self.client.get(self.api_url(), {'labels': 'RFC'})
+        resp = self.client.get(self.api_url(), {'labels': 'rfc'})
         self.assertEqual([patch1.id], [x['id'] for x in resp.data])
 
-        resp = self.client.get(self.api_url(), {'labels': 'rfc'})
+        resp = self.client.get(self.api_url(), {'labels': 'RFC'})
         self.assertEqual([patch1.id], [x['id'] for x in resp.data])
 
     @utils.store_samples('patch-list-1-0')
